@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 // Импорт пакета для управления состоянием с использованием BLoC (будет использован позже)
 // Import the package for state management with BLoC (to be used later)
 
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 void main() {
   // Запуск приложения
   // Entry point of the application
