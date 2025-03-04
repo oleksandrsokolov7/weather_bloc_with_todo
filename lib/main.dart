@@ -12,6 +12,8 @@ void main() {
 // Главный виджет приложения
 // The main widget of the application
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
