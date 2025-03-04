@@ -1,0 +1,1 @@
+/Users/oleksandrsokolv/development/weather_bloc_with_todo/weather_bloc_with_todo/build/app/intermediates/cxx/Debug/38835e19/obj/arm64-v8a

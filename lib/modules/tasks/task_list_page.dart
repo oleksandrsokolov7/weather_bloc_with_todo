@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../blocs/task_bloc.dart';
 import '../../models/task_model.dart';
 
-// Страница списка задач / Task List Page
 class TaskListPage extends StatefulWidget {
   @override
   _TaskListPageState createState() => _TaskListPageState();
@@ -11,11 +10,12 @@ class TaskListPage extends StatefulWidget {
 
 class _TaskListPageState extends State<TaskListPage> {
   late TaskBloc taskBloc;
+  String selectedCategory = 'All'; // Фильтрация по категориям
+  bool showCompleted = true; // Фильтрация по статусу
 
   @override
   void initState() {
     super.initState();
-    // Инициализация TaskBloc и загрузка сохранённых задач
     taskBloc = TaskBloc();
     taskBloc.add(LoadTasksEvent());
   }
@@ -27,39 +27,70 @@ class _TaskListPageState extends State<TaskListPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text('Task Manager'),
+          actions: [
+            // Фильтр по статусу
+            Switch(
+              value: showCompleted,
+              onChanged: (value) {
+                setState(() {
+                  showCompleted = value;
+                });
+              },
+            ),
+            // Фильтр по категориям (выпадающее меню)
+            DropdownButton<String>(
+              value: selectedCategory,
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    selectedCategory = value;
+                  });
+                }
+              },
+              items: ['All', 'Work', 'Personal']
+                  .map((category) => DropdownMenuItem(
+                        value: category,
+                        child: Text(category),
+                      ))
+                  .toList(),
+            ),
+          ],
         ),
         body: BlocBuilder<TaskBloc, TaskState>(
           builder: (context, state) {
             if (state is TaskInitialState) {
-              final tasks = state.tasks;
+              var tasks = state.tasks;
+
+              // Применяем фильтрацию
+              tasks = tasks.where((task) {
+                if (!showCompleted && task.isCompleted) return false;
+                if (selectedCategory != 'All' &&
+                    task.category != selectedCategory) return false;
+                return true;
+              }).toList();
+
               if (tasks.isEmpty) {
-                return Center(
-                  child: Text('No tasks added yet'),
-                );
+                return Center(child: Text('No tasks available'));
               }
+
               return ListView.builder(
                 itemCount: tasks.length,
                 itemBuilder: (context, index) {
                   final task = tasks[index];
                   return Dismissible(
                     key: ValueKey('${task.title}_$index'),
-                    // Позволяем свайп в обе стороны
                     direction: DismissDirection.horizontal,
                     confirmDismiss: (direction) async {
-                      // Если свайп вправо, только помечаем как выполненную, не удаляя элемент
                       if (direction == DismissDirection.startToEnd) {
-                        // Отправляем событие для отметки задачи как выполненной
                         BlocProvider.of<TaskBloc>(context)
                             .add(MarkTaskCompletedEvent(index));
-                        return false; // не удаляем элемент из списка
+                        return false;
                       } else if (direction == DismissDirection.endToStart) {
-                        // Если свайп влево, подтверждаем удаление
                         return true;
                       }
                       return false;
                     },
                     onDismissed: (direction) {
-                      // Свайп влево: удаление задачи
                       if (direction == DismissDirection.endToStart) {
                         BlocProvider.of<TaskBloc>(context)
                             .add(DeleteTaskEvent(index));
@@ -87,10 +118,13 @@ class _TaskListPageState extends State<TaskListPage> {
                           decoration: task.isCompleted
                               ? TextDecoration.lineThrough
                               : TextDecoration.none,
+                          color: task.priority == 'Important'
+                              ? Colors.red
+                              : Colors.black,
                         ),
                       ),
                       subtitle: Text(
-                        '${task.description} - Priority: ${task.priority}',
+                        '${task.description} - ${task.category}',
                         style: TextStyle(
                           decoration: task.isCompleted
                               ? TextDecoration.lineThrough
@@ -123,12 +157,11 @@ class _TaskListPageState extends State<TaskListPage> {
     );
   }
 
-  // Метод для отображения диалога добавления новой задачи / Method to display a dialog for adding a new task
   void _showAddTaskDialog(BuildContext context, TaskBloc taskBloc) {
     final titleController = TextEditingController();
     final descriptionController = TextEditingController();
     final categoryController = TextEditingController();
-    final priorityController = TextEditingController();
+    bool isImportant = false;
 
     showDialog(
       context: context,
@@ -151,10 +184,19 @@ class _TaskListPageState extends State<TaskListPage> {
                   controller: categoryController,
                   decoration: InputDecoration(labelText: 'Category'),
                 ),
-                TextField(
-                  controller: priorityController,
-                  decoration:
-                      InputDecoration(labelText: 'Priority (important/normal)'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Important'),
+                    Switch(
+                      value: isImportant,
+                      onChanged: (value) {
+                        setState(() {
+                          isImportant = value;
+                        });
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -170,9 +212,7 @@ class _TaskListPageState extends State<TaskListPage> {
                   title: titleController.text,
                   description: descriptionController.text,
                   category: categoryController.text,
-                  priority: priorityController.text.isNotEmpty
-                      ? priorityController.text
-                      : 'normal',
+                  priority: isImportant ? 'Important' : 'Normal',
                 );
                 taskBloc.add(AddTaskEvent(newTask));
                 Navigator.pop(dialogContext);
