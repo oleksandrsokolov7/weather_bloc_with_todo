@@ -1,38 +1,38 @@
 // Модель задачи / Task model
-// Содержит поля для названия, описания, категории и статуса выполнения
-// Contains fields for title, description, category, and completion status
-
+// Добавлено поле priority для определения важности задачи
 class Task {
   final String title;
   final String description;
   final String category;
+  final String priority; // 'important' или 'normal'
   bool isCompleted;
 
   Task({
     required this.title,
     required this.description,
     required this.category,
+    required this.priority,
     this.isCompleted = false,
   });
 
-  // Метод для преобразования задачи в Map (например, для сохранения в SharedPreferences)
-  // Method to convert task to a Map (for saving in SharedPreferences)
+  // Преобразование задачи в Map для сохранения
   Map<String, dynamic> toMap() {
     return {
       'title': title,
       'description': description,
       'category': category,
+      'priority': priority,
       'isCompleted': isCompleted,
     };
   }
 
-  // Метод для создания задачи из Map
-  // Method to create a task from a Map
+  // Создание задачи из Map
   factory Task.fromMap(Map<String, dynamic> map) {
     return Task(
       title: map['title'],
       description: map['description'],
       category: map['category'],
+      priority: map['priority'] ?? 'normal',
       isCompleted: map['isCompleted'] ?? false,
     );
   }

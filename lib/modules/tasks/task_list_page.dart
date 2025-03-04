@@ -16,7 +16,6 @@ class _TaskListPageState extends State<TaskListPage> {
   void initState() {
     super.initState();
     // Инициализация TaskBloc и загрузка сохранённых задач
-    // Initialize TaskBloc and load persisted tasks
     taskBloc = TaskBloc();
     taskBloc.add(LoadTasksEvent());
   }
@@ -42,22 +41,66 @@ class _TaskListPageState extends State<TaskListPage> {
                 itemCount: tasks.length,
                 itemBuilder: (context, index) {
                   final task = tasks[index];
-                  return ListTile(
-                    title: Text(task.title),
-                    subtitle: Text(task.description),
-                    trailing: Checkbox(
-                      value: task.isCompleted,
-                      onChanged: (bool? value) {
-                        // Переключение состояния задачи
-                        // Toggle task completion status
+                  return Dismissible(
+                    key: ValueKey('${task.title}_$index'),
+                    // Позволяем свайп в обе стороны
+                    direction: DismissDirection.horizontal,
+                    confirmDismiss: (direction) async {
+                      // Если свайп вправо, только помечаем как выполненную, не удаляя элемент
+                      if (direction == DismissDirection.startToEnd) {
+                        // Отправляем событие для отметки задачи как выполненной
                         BlocProvider.of<TaskBloc>(context)
-                            .add(ToggleTaskEvent(index));
-                      },
-                    ),
-                    onLongPress: () {
-                      // TODO: Реализовать удаление задачи
-                      // TODO: Implement task deletion
+                            .add(MarkTaskCompletedEvent(index));
+                        return false; // не удаляем элемент из списка
+                      } else if (direction == DismissDirection.endToStart) {
+                        // Если свайп влево, подтверждаем удаление
+                        return true;
+                      }
+                      return false;
                     },
+                    onDismissed: (direction) {
+                      // Свайп влево: удаление задачи
+                      if (direction == DismissDirection.endToStart) {
+                        BlocProvider.of<TaskBloc>(context)
+                            .add(DeleteTaskEvent(index));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("${task.title} deleted")),
+                        );
+                      }
+                    },
+                    background: Container(
+                      color: Colors.green,
+                      alignment: Alignment.centerLeft,
+                      padding: EdgeInsets.only(left: 16.0),
+                      child: Icon(Icons.check, color: Colors.white),
+                    ),
+                    secondaryBackground: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: EdgeInsets.only(right: 16.0),
+                      child: Icon(Icons.delete, color: Colors.white),
+                    ),
+                    child: ListTile(
+                      title: Text(
+                        task.title,
+                        style: TextStyle(
+                          decoration: task.isCompleted
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '${task.description} - Priority: ${task.priority}',
+                        style: TextStyle(
+                          decoration: task.isCompleted
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                        ),
+                      ),
+                      trailing: task.isCompleted
+                          ? Icon(Icons.done, color: Colors.green)
+                          : null,
+                    ),
                   );
                 },
               );
@@ -66,8 +109,6 @@ class _TaskListPageState extends State<TaskListPage> {
           },
         ),
         floatingActionButton: Builder(
-          // Используем Builder для получения корректного контекста, находящегося внутри BlocProvider
-          // Use Builder to get a context inside the BlocProvider
           builder: (context) {
             return FloatingActionButton(
               child: Icon(Icons.add),
@@ -82,34 +123,41 @@ class _TaskListPageState extends State<TaskListPage> {
     );
   }
 
-  // Метод для отображения диалога добавления новой задачи
-  // Method to display a dialog for adding a new task
+  // Метод для отображения диалога добавления новой задачи / Method to display a dialog for adding a new task
   void _showAddTaskDialog(BuildContext context, TaskBloc taskBloc) {
     final titleController = TextEditingController();
     final descriptionController = TextEditingController();
     final categoryController = TextEditingController();
+    final priorityController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: Text('Add Task'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: InputDecoration(labelText: 'Title'),
-              ),
-              TextField(
-                controller: descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
-              ),
-              TextField(
-                controller: categoryController,
-                decoration: InputDecoration(labelText: 'Category'),
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: InputDecoration(labelText: 'Title'),
+                ),
+                TextField(
+                  controller: descriptionController,
+                  decoration: InputDecoration(labelText: 'Description'),
+                ),
+                TextField(
+                  controller: categoryController,
+                  decoration: InputDecoration(labelText: 'Category'),
+                ),
+                TextField(
+                  controller: priorityController,
+                  decoration:
+                      InputDecoration(labelText: 'Priority (important/normal)'),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -122,9 +170,10 @@ class _TaskListPageState extends State<TaskListPage> {
                   title: titleController.text,
                   description: descriptionController.text,
                   category: categoryController.text,
+                  priority: priorityController.text.isNotEmpty
+                      ? priorityController.text
+                      : 'normal',
                 );
-                // Добавление новой задачи через BLoC
-                // Add new task via BLoC
                 taskBloc.add(AddTaskEvent(newTask));
                 Navigator.pop(dialogContext);
               },
