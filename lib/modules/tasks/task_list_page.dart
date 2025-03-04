@@ -160,64 +160,106 @@ class _TaskListPageState extends State<TaskListPage> {
   void _showAddTaskDialog(BuildContext context, TaskBloc taskBloc) {
     final titleController = TextEditingController();
     final descriptionController = TextEditingController();
-    final categoryController = TextEditingController();
+
     bool isImportant = false;
+    bool isWorkCategory = true; // Work (true) или Personal (false)
 
     showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: Text('Add Task'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleController,
-                  decoration: InputDecoration(labelText: 'Title'),
-                ),
-                TextField(
-                  controller: descriptionController,
-                  decoration: InputDecoration(labelText: 'Description'),
-                ),
-                TextField(
-                  controller: categoryController,
-                  decoration: InputDecoration(labelText: 'Category'),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title:
+              Text('Add Task', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: StatefulBuilder(
+            // Используем StatefulBuilder для обновления UI
+            builder: (dialogContext, setState) {
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Important'),
-                    Switch(
-                      value: isImportant,
-                      onChanged: (value) {
-                        setState(() {
-                          isImportant = value;
-                        });
-                      },
+                    TextField(
+                      controller: titleController,
+                      decoration: InputDecoration(labelText: 'Title'),
+                    ),
+                    TextField(
+                      controller: descriptionController,
+                      decoration: InputDecoration(labelText: 'Description'),
+                    ),
+                    SizedBox(height: 10),
+
+                    // Переключатель "Important / Normal"
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Priority:',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Switch(
+                          value: isImportant,
+                          activeColor: Colors.red,
+                          onChanged: (value) {
+                            setState(() {
+                              isImportant = value;
+                            });
+                          },
+                        ),
+                        Text(isImportant ? 'Important' : 'Normal',
+                            style: TextStyle(
+                                color:
+                                    isImportant ? Colors.red : Colors.black)),
+                      ],
+                    ),
+
+                    // Переключатель "Work / Personal"
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Category:',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Switch(
+                          value: isWorkCategory,
+                          activeColor: Colors.blue,
+                          onChanged: (value) {
+                            setState(() {
+                              isWorkCategory = value;
+                            });
+                          },
+                        ),
+                        Text(isWorkCategory ? 'Work' : 'Personal',
+                            style: TextStyle(
+                                color: isWorkCategory
+                                    ? Colors.blue
+                                    : Colors.green)),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text('Cancel'),
+              child: Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
-            TextButton(
+            ElevatedButton(
               onPressed: () {
                 final newTask = Task(
                   title: titleController.text,
                   description: descriptionController.text,
-                  category: categoryController.text,
+                  category: isWorkCategory ? 'Work' : 'Personal',
                   priority: isImportant ? 'Important' : 'Normal',
                 );
                 taskBloc.add(AddTaskEvent(newTask));
                 Navigator.pop(dialogContext);
               },
               child: Text('Add'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+              ),
             ),
           ],
         );
