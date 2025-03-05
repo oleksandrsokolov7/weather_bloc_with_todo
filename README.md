@@ -26,14 +26,14 @@ To get started with this project:
    ```bash
    git clone https://github.com/yourusername/weather_app.git
 2.	Install dependencies:
-	```bash
+   ```bash
    flutter pub get
-3.	Add your API key:
+3. Add your API key:
 	•	In order to fetch weather data, you’ll need to get an API key from OpenWeatherMap.
 	•	Once you have your API key, go to lib/api_constants.dart and replace the placeholder API key with your own key:
  static const String apiKey = 'your-api-key-here';
- 4.	Run the app:
-  	```bash
+ 4. Run the app:
+    ```bash
    flutter run
    Contributing
 
