@@ -4,7 +4,6 @@ import 'package:weather_bloc_with_todo/blocs/weather/weather_event.dart';
 import 'package:weather_bloc_with_todo/blocs/weather/weather_state.dart';
 import 'package:weather_bloc_with_todo/constants/api_constants.dart';
 import 'package:weather_bloc_with_todo/models/weather_model.dart';
-// Импортируем ApiConstants
 
 class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
   final Dio dio;

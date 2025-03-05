@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dio/dio.dart';
+import 'package:weather_bloc_with_todo/blocs/weather/weather_bloc.dart';
 import 'package:weather_bloc_with_todo/ui/home_page.dart';
-// Импорт модулей BLoC, моделей и страниц
-// Import BLoC modules, models, and pages
 
 void main() {
-  // Точка входа приложения
-  // Application entry point
-  runApp(MyApp());
+  final dio = Dio(); // Создаем Dio для HTTP-запросов
+
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => WeatherBloc(dio), // Передаем Dio в BLoC
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
-// Главный виджет приложения
-// The main widget of the application
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -21,8 +29,6 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      // Указываем домашнюю страницу приложения
-      // Set the home page of the application
       home: HomePage(),
     );
   }

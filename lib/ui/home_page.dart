@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:weather_bloc_with_todo/ui/weather_screen.dart';
 
 import 'task_list_page.dart'; // Экран задач
-import 'weather_widget.dart'; // Экран погоды
 
 class HomePage extends StatefulWidget {
   @override
