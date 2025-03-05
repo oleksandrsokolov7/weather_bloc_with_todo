@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:weather_bloc_with_todo/repositories/task_repository.dart';
+import 'package:weather_bloc_with_todo/ui/task_Item.dart';
 import '../blocs/task/task_bloc.dart';
-import '../models/task_model.dart';
+
+import 'task_add_dialog.dart'; // Import the dialog for adding tasks
 
 class TaskListPage extends StatefulWidget {
+  const TaskListPage({super.key});
+
   @override
   _TaskListPageState createState() => _TaskListPageState();
 }
 
 class _TaskListPageState extends State<TaskListPage> {
   late TaskBloc taskBloc;
-  String selectedCategory = 'All'; // Фильтрация по категориям
-  bool showCompleted = true; // Фильтрация по статусу
+  String selectedCategory = 'All'; // Category filtering
+  bool showCompleted = true; // Status filtering
 
   @override
   void initState() {
     super.initState();
-    taskBloc = TaskBloc();
-    taskBloc.add(LoadTasksEvent());
+    final taskRepository = TaskRepository();
+    taskBloc = TaskBloc(taskRepository);
+    taskBloc.add(LoadTasksEvent()); // Load tasks when the page is initialized
   }
 
   @override
@@ -28,7 +34,7 @@ class _TaskListPageState extends State<TaskListPage> {
         appBar: AppBar(
           title: Text('Task Manager'),
           actions: [
-            // Фильтр по статусу
+            // Filter by task completion status
             Switch(
               value: showCompleted,
               onChanged: (value) {
@@ -37,7 +43,7 @@ class _TaskListPageState extends State<TaskListPage> {
                 });
               },
             ),
-            // Фильтр по категориям (выпадающее меню)
+            // Filter by category (Dropdown menu)
             DropdownButton<String>(
               value: selectedCategory,
               onChanged: (value) {
@@ -61,11 +67,13 @@ class _TaskListPageState extends State<TaskListPage> {
             if (state is TaskInitialState) {
               var tasks = state.tasks;
 
-              // Применяем фильтрацию
+              // Apply filtering
               tasks = tasks.where((task) {
                 if (!showCompleted && task.isCompleted) return false;
                 if (selectedCategory != 'All' &&
-                    task.category != selectedCategory) return false;
+                    task.category != selectedCategory) {
+                  return false;
+                }
                 return true;
               }).toList();
 
@@ -77,69 +85,13 @@ class _TaskListPageState extends State<TaskListPage> {
                 itemCount: tasks.length,
                 itemBuilder: (context, index) {
                   final task = tasks[index];
-                  return Dismissible(
-                    key: ValueKey('${task.title}_$index'),
-                    direction: DismissDirection.horizontal,
-                    confirmDismiss: (direction) async {
-                      if (direction == DismissDirection.startToEnd) {
-                        BlocProvider.of<TaskBloc>(context)
-                            .add(MarkTaskCompletedEvent(index));
-                        return false;
-                      } else if (direction == DismissDirection.endToStart) {
-                        return true;
-                      }
-                      return false;
-                    },
-                    onDismissed: (direction) {
-                      if (direction == DismissDirection.endToStart) {
-                        BlocProvider.of<TaskBloc>(context)
-                            .add(DeleteTaskEvent(index));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("${task.title} deleted")),
-                        );
-                      }
-                    },
-                    background: Container(
-                      color: Colors.green,
-                      alignment: Alignment.centerLeft,
-                      padding: EdgeInsets.only(left: 16.0),
-                      child: Icon(Icons.check, color: Colors.white),
-                    ),
-                    secondaryBackground: Container(
-                      color: Colors.red,
-                      alignment: Alignment.centerRight,
-                      padding: EdgeInsets.only(right: 16.0),
-                      child: Icon(Icons.delete, color: Colors.white),
-                    ),
-                    child: ListTile(
-                      title: Text(
-                        task.title,
-                        style: TextStyle(
-                          decoration: task.isCompleted
-                              ? TextDecoration.lineThrough
-                              : TextDecoration.none,
-                          color: task.priority == 'Important'
-                              ? Colors.red
-                              : Colors.black,
-                        ),
-                      ),
-                      subtitle: Text(
-                        '${task.description} - ${task.category}',
-                        style: TextStyle(
-                          decoration: task.isCompleted
-                              ? TextDecoration.lineThrough
-                              : TextDecoration.none,
-                        ),
-                      ),
-                      trailing: task.isCompleted
-                          ? Icon(Icons.done, color: Colors.green)
-                          : null,
-                    ),
-                  );
+                  return TaskItem(
+                      task: task, index: index); // Display each task
                 },
               );
             }
-            return Center(child: CircularProgressIndicator());
+            return Center(
+                child: CircularProgressIndicator()); // Show loading indicator
           },
         ),
         floatingActionButton: Builder(
@@ -148,7 +100,8 @@ class _TaskListPageState extends State<TaskListPage> {
               child: Icon(Icons.add),
               onPressed: () {
                 final taskBloc = BlocProvider.of<TaskBloc>(context);
-                _showAddTaskDialog(context, taskBloc);
+                _showAddTaskDialog(
+                    context, taskBloc); // Navigate to the add task dialog
               },
             );
           },
@@ -157,119 +110,19 @@ class _TaskListPageState extends State<TaskListPage> {
     );
   }
 
+  // Method to show the Add Task dialog
   void _showAddTaskDialog(BuildContext context, TaskBloc taskBloc) {
-    final titleController = TextEditingController();
-    final descriptionController = TextEditingController();
-
-    bool isImportant = false;
-    bool isWorkCategory = true; // Work (true) или Personal (false)
-
     showDialog(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title:
-              Text('Add Task', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: StatefulBuilder(
-            // Используем StatefulBuilder для обновления UI
-            builder: (dialogContext, setState) {
-              return SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: titleController,
-                      decoration: InputDecoration(labelText: 'Title'),
-                    ),
-                    TextField(
-                      controller: descriptionController,
-                      decoration: InputDecoration(labelText: 'Description'),
-                    ),
-                    SizedBox(height: 10),
-
-                    // Переключатель "Important / Normal"
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Priority:',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        Switch(
-                          value: isImportant,
-                          activeColor: Colors.red,
-                          onChanged: (value) {
-                            setState(() {
-                              isImportant = value;
-                            });
-                          },
-                        ),
-                        Text(isImportant ? 'Important' : 'Normal',
-                            style: TextStyle(
-                                color:
-                                    isImportant ? Colors.red : Colors.black)),
-                      ],
-                    ),
-
-                    // Переключатель "Work / Personal"
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Category:',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        Switch(
-                          value: isWorkCategory,
-                          activeColor: Colors.blue,
-                          onChanged: (value) {
-                            setState(() {
-                              isWorkCategory = value;
-                            });
-                          },
-                        ),
-                        Text(isWorkCategory ? 'Work' : 'Personal',
-                            style: TextStyle(
-                                color: isWorkCategory
-                                    ? Colors.blue
-                                    : Colors.green)),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text('Cancel', style: TextStyle(color: Colors.grey)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final newTask = Task(
-                  title: titleController.text,
-                  description: descriptionController.text,
-                  category: isWorkCategory ? 'Work' : 'Personal',
-                  priority: isImportant ? 'Important' : 'Normal',
-                );
-                taskBloc.add(AddTaskEvent(newTask));
-                Navigator.pop(dialogContext);
-              },
-              child: Text('Add'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
-          ],
-        );
+        return TaskAddDialog(taskBloc: taskBloc); // Display the add task dialog
       },
     );
   }
 
   @override
   void dispose() {
-    taskBloc.close();
+    taskBloc.close(); // Close the BLoC when the widget is disposed
     super.dispose();
   }
 }

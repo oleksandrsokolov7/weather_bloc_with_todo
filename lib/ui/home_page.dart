@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:weather_bloc_with_todo/ui/weather_screen.dart';
 
-import 'task_list_page.dart'; // Экран задач
+import 'task_list_page.dart'; // Task screen
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  int _currentIndex = 0; // Индекс выбранного экрана
+  int _currentIndex = 0; // Index of the currently selected screen
 
+  // List of screens for navigation
   final List<Widget> _pages = [
-    TaskListPage(), // Экран задач
-    WeatherScreen(), // Экран погоды
+    TaskListPage(), // Task screen
+    WeatherScreen(), // Weather screen
   ];
 
   @override
@@ -22,22 +25,22 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text('Task and Weather App'),
       ),
-      body: _pages[_currentIndex], // Отображаем текущий экран
+      body: _pages[_currentIndex], // Display the current screen
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex, // Текущий индекс
+        currentIndex: _currentIndex, // Current index
         onTap: (index) {
           setState(() {
-            _currentIndex = index; // Переключение на другой экран
+            _currentIndex = index; // Switch to the selected screen
           });
         },
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.list),
-            label: 'Tasks', // Элемент для задач
+            label: 'Tasks', // Item for tasks
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.cloud),
-            label: 'Weather', // Элемент для погоды
+            label: 'Weather', // Item for weather
           ),
         ],
       ),

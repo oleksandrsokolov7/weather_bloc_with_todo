@@ -17,8 +17,9 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
     emit(WeatherLoading());
 
     try {
-      final response = await dio.get(
-        ApiConstants.baseUrl, // Используем константы
+      // Make an API call using the constants for the request
+      final Response response = await dio.get(
+        ApiConstants.baseUrl,
         queryParameters: {
           'q': event.city,
           'appid': ApiConstants.apiKey,
@@ -27,14 +28,18 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
         },
       );
 
+      // Check if the response is successful
       if (response.statusCode == 200) {
+        // Parse the weather data from the response
         final weather = WeatherModel.fromJson(response.data);
         emit(WeatherLoaded(weather));
       } else {
-        emit(const WeatherError('Не вдалося отримати дані'));
+        // Emit error state if unable to fetch data
+        emit(const WeatherError('Failed to fetch data'));
       }
     } catch (e) {
-      emit(WeatherError('Помилка: ${e.toString()}'));
+      // Emit error state if there is an exception
+      emit(WeatherError('Error: ${e.toString()}'));
     }
   }
 }

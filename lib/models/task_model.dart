@@ -1,12 +1,12 @@
-// Модель задачи / Task model
-// Добавлено поле priority для определения важности задачи
+// Task model class to represent a task
 class Task {
   final String title;
   final String description;
   final String category;
-  final String priority; // 'important' или 'normal'
+  final String priority; // 'important' or 'normal'
   bool isCompleted;
 
+  // Constructor to create a Task instance
   Task({
     required this.title,
     required this.description,
@@ -15,7 +15,7 @@ class Task {
     this.isCompleted = false,
   });
 
-  // Преобразование задачи в Map для сохранения
+  // Converts the task into a Map for storage
   Map<String, dynamic> toMap() {
     return {
       'title': title,
@@ -26,7 +26,7 @@ class Task {
     };
   }
 
-  // Создание задачи из Map
+  // Creates a Task from a Map
   factory Task.fromMap(Map<String, dynamic> map) {
     return Task(
       title: map['title'],
@@ -34,6 +34,23 @@ class Task {
       category: map['category'],
       priority: map['priority'] ?? 'normal',
       isCompleted: map['isCompleted'] ?? false,
+    );
+  }
+
+  // Method to copy a Task with optional changes to its attributes
+  Task copyWith({
+    String? title,
+    String? description,
+    String? category,
+    String? priority,
+    bool? isCompleted,
+  }) {
+    return Task(
+      title: title ?? this.title,
+      description: description ?? this.description,
+      category: category ?? this.category,
+      priority: priority ?? this.priority,
+      isCompleted: isCompleted ?? this.isCompleted,
     );
   }
 }

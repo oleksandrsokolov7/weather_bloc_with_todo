@@ -1,79 +1,108 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/task_model.dart';
-import '../../modules/persistence/shared_prefs_helper.dart';
+import '../../repositories/task_repository.dart';
 
-// Абстрактный класс событий / Abstract event class
-abstract class TaskEvent {}
-
-// Событие загрузки задач из SharedPreferences / Event to load tasks from SharedPreferences
-class LoadTasksEvent extends TaskEvent {}
-
-// Событие добавления задачи / Event for adding a task
-class AddTaskEvent extends TaskEvent {
-  final Task task;
-  AddTaskEvent(this.task);
-}
-
-// Событие отметки задачи как выполненной (при свайпе) / Event to mark a task as completed via swipe
-class MarkTaskCompletedEvent extends TaskEvent {
-  final int index;
-  MarkTaskCompletedEvent(this.index);
-}
-
-// Событие удаления задачи / Event for deleting a task
-class DeleteTaskEvent extends TaskEvent {
-  final int index;
-  DeleteTaskEvent(this.index);
-}
-
-// Абстрактное состояние / Abstract state class
-abstract class TaskState {}
-
-// Начальное состояние с задачами / Initial state with task list
-class TaskInitialState extends TaskState {
-  final List<Task> tasks;
-  TaskInitialState(this.tasks);
-}
-
+/// Bloc for managing tasks with state management.
 class TaskBloc extends Bloc<TaskEvent, TaskState> {
-  TaskBloc() : super(TaskInitialState([])) {
-    // Обработка события загрузки задач
+  final TaskRepository repository;
+
+  TaskBloc(this.repository) : super(TaskInitialState([])) {
+    // Handling event to load tasks from repository
     on<LoadTasksEvent>((event, emit) async {
-      List<Task> tasks = await SharedPrefsHelper.loadTasks();
-      emit(TaskInitialState(tasks));
+      try {
+        List<Task> tasks = await repository.loadTasks();
+        emit(TaskInitialState(tasks));
+      } catch (e) {
+        emit(TaskErrorState('Failed to load tasks'));
+      }
     });
 
-    // Обработка события добавления задачи
+    // Handling event to add a new task
     on<AddTaskEvent>((event, emit) async {
       if (state is TaskInitialState) {
         final currentState = state as TaskInitialState;
         final updatedTasks = List<Task>.from(currentState.tasks)
           ..add(event.task);
-        await SharedPrefsHelper.saveTasks(updatedTasks);
-        emit(TaskInitialState(updatedTasks));
+
+        try {
+          await repository.saveTasks(updatedTasks);
+          emit(TaskInitialState(updatedTasks));
+        } catch (e) {
+          emit(TaskErrorState('Failed to save task'));
+        }
       }
     });
 
-    // Обработка события отметки задачи как выполненной
+    // Handling event to mark a task as completed
     on<MarkTaskCompletedEvent>((event, emit) async {
       if (state is TaskInitialState) {
         final currentState = state as TaskInitialState;
         final updatedTasks = List<Task>.from(currentState.tasks);
-        updatedTasks[event.index].isCompleted = true;
-        await SharedPrefsHelper.saveTasks(updatedTasks);
-        emit(TaskInitialState(updatedTasks));
+        updatedTasks[event.index] =
+            updatedTasks[event.index].copyWith(isCompleted: true);
+
+        try {
+          await repository.saveTasks(updatedTasks);
+          emit(TaskInitialState(updatedTasks));
+        } catch (e) {
+          emit(TaskErrorState('Failed to update task'));
+        }
       }
     });
 
-    // Обработка события удаления задачи
+    // Handling event to delete a task
     on<DeleteTaskEvent>((event, emit) async {
       if (state is TaskInitialState) {
         final currentState = state as TaskInitialState;
-        final updatedTasks = List<Task>.from(currentState.tasks);
-        updatedTasks.removeAt(event.index);
-        await SharedPrefsHelper.saveTasks(updatedTasks);
-        emit(TaskInitialState(updatedTasks));
+        final updatedTasks = List<Task>.from(currentState.tasks)
+          ..removeAt(event.index);
+
+        try {
+          await repository.saveTasks(updatedTasks);
+          emit(TaskInitialState(updatedTasks));
+        } catch (e) {
+          emit(TaskErrorState('Failed to delete task'));
+        }
       }
     });
   }
+}
+
+/// Abstract event class for task management
+abstract class TaskEvent {}
+
+/// Event to load tasks from the repository
+class LoadTasksEvent extends TaskEvent {}
+
+/// Event for adding a new task
+class AddTaskEvent extends TaskEvent {
+  final Task task;
+  AddTaskEvent(this.task);
+}
+
+/// Event to mark a task as completed via swipe
+class MarkTaskCompletedEvent extends TaskEvent {
+  final int index;
+  MarkTaskCompletedEvent(this.index);
+}
+
+/// Event for deleting a task
+class DeleteTaskEvent extends TaskEvent {
+  final int index;
+  DeleteTaskEvent(this.index);
+}
+
+/// Abstract state class for task management
+abstract class TaskState {}
+
+/// Initial state containing a list of tasks
+class TaskInitialState extends TaskState {
+  final List<Task> tasks;
+  TaskInitialState(List<Task> tasks) : tasks = List.unmodifiable(tasks);
+}
+
+/// State representing an error during task operations
+class TaskErrorState extends TaskState {
+  final String message;
+  TaskErrorState(this.message);
 }
