@@ -1,36 +1,27 @@
-# weather_bloc_with_todo
+# Weather App with BLoC and Dio
 
-**Weather & ToDo Manager** – Flutter приложение для управления списком задач и отображения текущей погоды.  
-Проект демонстрирует использование паттерна BLoC для управления состоянием и принципы SOLID в разработке.
+This project is a simple **Weather App** built using **Flutter**, **BLoC** for state management, and **Dio** for HTTP requests. The app fetches weather data from an external API and displays it to the user.
 
-## Основные возможности
+## Features
+- Display the current weather, including temperature, humidity, and wind speed.
+- Use of **BLoC** for managing app state.
+- **Dio** used for fetching weather data via API calls.
+- Displaying weather information in **Celsius** with the city name.
 
-- **Управление задачами:**  
-  Добавление, удаление и обновление задач. Возможность отмечать выполнение и группировать задачи по категориям (например, "работа", "личные дела").
+## Libraries Used
+- `flutter_bloc` - BLoC pattern for state management.
+- `dio` - HTTP client for fetching weather data.
 
-- **Фильтрация:**  
-  Фильтрация задач по статусу (выполненные / невыполненные) и категориям.
+## Project Structure
+- `main.dart`: The main entry point where the app is initialized.
+- `weather_bloc.dart`: Contains the business logic for weather fetching and state management.
+- `home_page.dart`: The user interface for displaying weather data.
+- `weather_model.dart`: A model to represent the weather data.
 
-- **Персистентность:**  
-  Сохранение состояния задач между сеансами с использованием [SharedPreferences] .
+## Setup
 
-- **Отображение погоды:**  
-  Интеграция с OpenWeatherMap API для получения и отображения текущей погоды, включая температуру и погодные условия.
+To get started with this project:
 
-- **Архитектура:**  
-  Использование паттерна BLoC для управления состоянием и соблюдение принципов SOLID для улучшения расширяемости и читаемости кода.
-
-## Начало работы
-
-### Предварительные требования
-
-- [Flutter SDK](https://flutter.dev/docs/get-started/install)
-- Действующий API ключ от [OpenWeatherMap](https://openweathermap.org/api) (для работы функционала погоды)
-
-### Установка
-
-1. **Клонируйте репозиторий:**
-
+1. Clone the repository:
    ```bash
-   git clone https://github.com/your_username/weather_bloc_with_todo.git
-   cd weather_bloc_with_todo
+   git clone https://github.com/yourusername/weather_app.git
