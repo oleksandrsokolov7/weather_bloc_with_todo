@@ -1,6 +1,7 @@
 # Weather App with BLoC and Dio
 
 This project is a simple **Weather App** built using **Flutter**, **BLoC** for state management, and **Dio** for HTTP requests. The app fetches weather data from an external API and displays it to the user.
+
 Add your API key:
 	•	In order to fetch weather data, you’ll need to get an API key from OpenWeatherMap.
 	•	Once you have your API key, go to lib/api_constants.dart and replace the placeholder API key with your own key:
