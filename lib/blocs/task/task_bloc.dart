@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../models/task_model.dart';
-import '../modules/persistence/shared_prefs_helper.dart';
+import '../../models/task_model.dart';
+import '../../modules/persistence/shared_prefs_helper.dart';
 
 // Абстрактный класс событий / Abstract event class
 abstract class TaskEvent {}

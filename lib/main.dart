@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:weather_bloc_with_todo/ui/home_page.dart';
 // Импорт модулей BLoC, моделей и страниц
 // Import BLoC modules, models, and pages
-import 'modules/tasks/task_list_page.dart';
 
 void main() {
   // Точка входа приложения
@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
       ),
       // Указываем домашнюю страницу приложения
       // Set the home page of the application
-      home: TaskListPage(),
+      home: HomePage(),
     );
   }
 }

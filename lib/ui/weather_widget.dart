@@ -4,14 +4,14 @@ import 'package:weather_bloc_with_todo/blocs/weather/weather_bloc.dart';
 import 'package:weather_bloc_with_todo/blocs/weather/weather_event.dart';
 import 'package:weather_bloc_with_todo/blocs/weather/weather_state.dart';
 
-class WeatherWidget extends StatefulWidget {
-  const WeatherWidget({super.key});
+class WeatherScreen extends StatefulWidget {
+  const WeatherScreen({super.key});
 
   @override
   _WeatherScreenState createState() => _WeatherScreenState();
 }
 
-class _WeatherScreenState extends State<WeatherWidget> {
+class _WeatherScreenState extends State<WeatherScreen> {
   final TextEditingController _cityController = TextEditingController();
 
   @override
