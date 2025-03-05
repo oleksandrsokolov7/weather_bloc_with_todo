@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Разрешение на использование небезопасных соединений (HTTP) -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">example.com</domain> <!-- Убедитесь, что ваш API домен здесь -->
+    </domain-config>
+</network-security-config>
