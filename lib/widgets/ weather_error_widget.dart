@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class WeatherErrorWidget extends StatelessWidget {
   final String message;
 
-  const WeatherErrorWidget({Key? key, required this.message}) : super(key: key);
+  const WeatherErrorWidget({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {

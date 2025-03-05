@@ -4,8 +4,7 @@ import 'package:weather_bloc_with_todo/models/weather_model.dart';
 class WeatherDisplayWidget extends StatelessWidget {
   final WeatherModel weather;
 
-  const WeatherDisplayWidget({Key? key, required this.weather})
-      : super(key: key);
+  const WeatherDisplayWidget({super.key, required this.weather});
 
   @override
   Widget build(BuildContext context) {
@@ -13,20 +12,20 @@ class WeatherDisplayWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          weather.cityName, // Відображення назви міста
+          weather.cityName, // Display the city name
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         Text(
-          '${weather.temperature.toStringAsFixed(1)}°C', // Відображення температури в градусах Цельсія
+          '${weather.temperature.toStringAsFixed(1)}°C', // Display the temperature in Celsius
           style: const TextStyle(fontSize: 40),
         ),
         Text(weather
-            .description), // Відображення опису погоди (наприклад, "Сонячно")
+            .description), // Display the weather description (e.g., "Clear sky")
         Text(
-          'Вологість: ${weather.humidity}%', // Відображення вологості
+          'Вологість: ${weather.humidity}%', // Display the humidity percentage
         ),
         Text(
-            'Швидкість вітру: ${weather.windSpeed} м/с'), // Відображення швидкості вітру в метрах на секунду
+            'Швидкість вітру: ${weather.windSpeed} м/с'), // Display the wind speed in meters per second
       ],
     );
   }
